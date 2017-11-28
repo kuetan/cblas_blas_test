@@ -70,7 +70,6 @@ float *clblas_sgemm_run(const float *A ,const float *B, const float *C,float *re
   err = clEnqueueReadBuffer( queue, bufC, CL_TRUE, 0,
 			     M * N * sizeof(*result),
 			     result, 0, NULL, NULL );
-  printf("%f",result[0]);
 
   /* Release OpenCL memory objects. */
   clReleaseMemObject( bufC );
@@ -91,44 +90,10 @@ float *clblas_sgemm_run(const float *A ,const float *B, const float *C,float *re
 float *cblas_sgemm_run(cl_float *A ,cl_float *B,cl_float *C, int M,int K,int N) {
   
   cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, M, N, K, 10, A, K,
-	      B, N, 0.0, C, N);
+	      B, N, 20, C, N);
   return C;
 }
 
 
 
 
-/* int main( void ) */
-/* { */
-/*   int M = 4; */
-/*   int N = 3; */
-/*   int K = 5; */
-/*   float A[M*K] = {  */
-/*     11, 12, 13, 14, 15,  */
-/*     21, 22, 23, 24, 25,  */
-/*     31, 32, 33, 34, 35,  */
-/*     41, 42, 43, 44, 45,  */
-/*   };  */
-
-/*   float B[K*N] = { */
-/*     11, 12, 13, */
-/*     21, 22, 23, */
-/*     31, 32, 33, */
-/*     41, 42, 43, */
-/*     51, 52, 53, */
-/*   }; */
-
-/*   float C[M*N] = { */
-/*     11, 12, 13, */
-/*     21, 22, 23, */
-/*     31, 32, 33, */
-/*     41, 42, 43, */
-/*   }; */
-/*   float cl_result[M*N]; */
-/*   float c_result[M*N]; */
-/*   clblas_sgemm_run(A,B,C,cl_result,M,K,N); */
-/*   cblas_sgemm_run(A,B,C,c_result,M,K,N); */
-/*   printf("opencl!!%f\n",cl_result[0]); */
-/*   printf("cpul!!%f\n",C[0]); */
-/*   return 0; */
-/* } */

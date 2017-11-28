@@ -47,14 +47,6 @@ TEST_F(fixtureName, testOk)
 
   clblas_sgemm_run(A,B,C,cl_result,M,K,N);
   cblas_sgemm_run(A,B,C,M,K,N);
-  EXPECT_FLOAT_EQ(C[0], cl_result[0]);
-  // printf("%f",C[0]);
-  // EXPECT_FLOAT_EQ(1, C[0]);
+  for (int i = 1;i  < sizeof C/sizeof(float);i ++)
+    {EXPECT_FLOAT_EQ(C[i], cl_result[i]); }
 }
-
-
-// TEST_F(fixtureName, testNg)
-// {
-//   EXPECT_EQ(0, function(0));
-//   EXPECT_EQ(1, function(10000));
-// }
