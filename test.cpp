@@ -17,7 +17,7 @@ protected:
 };
 
 
-TEST_F(fixtureName, testOk)
+TEST_F(fixtureName, sgemm)
 {
   int M = 4;
   int N = 3;
@@ -47,6 +47,40 @@ TEST_F(fixtureName, testOk)
 
   clblas_sgemm_run(A,B,C,cl_result,M,K,N);
   cblas_sgemm_run(A,B,C,M,K,N);
+  for (int i = 1;i  < sizeof C/sizeof(float);i ++)
+    {EXPECT_FLOAT_EQ(C[i], cl_result[i]); }
+}
+
+TEST_F(fixtureName, sdot)
+{
+  int N = 3;
+  float A[N] = { 
+    11, 12, 13
+  }; 
+
+  float B[N] = {
+    11, 12, 13,
+
+  };
+  float C[N];
+  float cl_result[N];
+  clblas_sdot_run(A,B,C,cl_result,N);
+  cblas_sdot_run(A,B,C,N);
+  for (int i = 1;i  < sizeof C/sizeof(float);i ++)
+    {EXPECT_FLOAT_EQ(C[i], cl_result[i]); }
+}
+
+TEST_F(fixtureName, sasum)
+{
+  int N = 3;
+  float A[N] = { 
+    11, 12, 13
+  }; 
+
+  float C[N];
+  float cl_result[N];
+  clblas_sasum_run(A,C,cl_result,N);
+  cblas_sasum_run(A,C,N);
   for (int i = 1;i  < sizeof C/sizeof(float);i ++)
     {EXPECT_FLOAT_EQ(C[i], cl_result[i]); }
 }

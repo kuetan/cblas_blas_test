@@ -92,8 +92,151 @@ float *cblas_sgemm_run(cl_float *A ,cl_float *B,cl_float *C, int M,int K,int N) 
   cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, M, N, K, 10, A, K,
 	      B, N, 20, C, N);
   return C;
-}
+};
 
 
+float *clblas_sdot_run(const float *A ,const float *B, const float *C,float *result, int N) {
+
+  cl_int err;
+  cl_platform_id platform = 0;
+  cl_device_id device = 0;
+  cl_context_properties props[3] = { CL_CONTEXT_PLATFORM, 0, 0 };
+  cl_context ctx = 0;
+  cl_command_queue queue = 0;
+  cl_mem bufA, bufB, bufC,tmpbuf;
+  cl_event event = NULL;
+
+  /* Setup OpenCL environment. */
+  err = clGetPlatformIDs( 1, &platform, NULL );
+  err = clGetDeviceIDs( platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL );
+
+  props[1] = (cl_context_properties)platform;
+  ctx = clCreateContext( props, 1, &device, NULL, NULL, &err );
+  queue = clCreateCommandQueueWithProperties( ctx, device, NULL, &err );
+
+  /* Setup clBLAS */
+  err = clblasSetup( );
+
+  /* Prepare OpenCL memory objects and place matrices inside them. */
+  bufA = clCreateBuffer( ctx, CL_MEM_READ_ONLY, N * sizeof(*A),
+			 NULL, &err );
+  bufB = clCreateBuffer( ctx, CL_MEM_READ_ONLY, N * sizeof(*B),
+			 NULL, &err );
+  bufC = clCreateBuffer( ctx, CL_MEM_READ_WRITE, N * sizeof(*C),
+			 NULL, &err );
+  tmpbuf = clCreateBuffer( ctx, CL_MEM_READ_WRITE,NULL,
+			 NULL, &err );
+
+  err = clEnqueueWriteBuffer( queue, bufA, CL_TRUE, 0,
+			      N * sizeof( *A ), A, 0, NULL, NULL );
+  err = clEnqueueWriteBuffer( queue, bufB, CL_TRUE, 0,
+			      N * sizeof( *B ), B, 0, NULL, NULL );
+  err = clEnqueueWriteBuffer( queue, bufC, CL_TRUE, 0,
+			       N * sizeof( *C ), C, 0, NULL, NULL );
+
+  err = clblasSdot(N,bufC,0, bufA, 0, 1, 
+		   bufB, 0, 1,
+		   tmpbuf, 1, &queue, 
+		   0,NULL, &event ); 
+
+  /* Wait for calculations to be finished. */
+  err = clWaitForEvents( 1, &event );
+
+  /* Fetch results of calculations from GPU memory. */
+  err = clEnqueueReadBuffer( queue, bufC, CL_TRUE, 0,
+			      N * sizeof(*result),
+			     result, 0, NULL, NULL );
+
+  /* Release OpenCL memory objects. */
+  clReleaseMemObject( bufC );
+  clReleaseMemObject( bufB );
+  clReleaseMemObject( bufA );
+
+  /* Finalize work with clBLAS */
+  clblasTeardown( );
+
+  /* Release OpenCL working objects. */
+  clReleaseCommandQueue( queue );
+  clReleaseContext( ctx );
+
+ //return ret;
+  return result;
+};
+
+float *cblas_sdot_run(cl_float *A ,cl_float *B,cl_float *C, int N) {
+  *C = cblas_sdot(N, A,0,B,0);
+  return C;
+};
+
+float *clblas_sasum_run(const float *A , const float *C,float *result, int N) {
+  cl_int err;
+  cl_platform_id platform = 0;
+  cl_device_id device = 0;
+  cl_context_properties props[3] = { CL_CONTEXT_PLATFORM, 0, 0 };
+  cl_context ctx = 0;
+  cl_command_queue queue = 0;
+  cl_mem bufA, bufC,tmpbuf;
+  cl_event event = NULL;
+
+  /* Setup OpenCL environment. */
+  err = clGetPlatformIDs( 1, &platform, NULL );
+  err = clGetDeviceIDs( platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL );
+
+  props[1] = (cl_context_properties)platform;
+  ctx = clCreateContext( props, 1, &device, NULL, NULL, &err );
+  queue = clCreateCommandQueueWithProperties( ctx, device, NULL, &err );
+
+  /* Setup clBLAS */
+  err = clblasSetup( );
+
+  /* Prepare OpenCL memory objects and place matrices inside them. */
+  bufA = clCreateBuffer( ctx, CL_MEM_READ_ONLY, N * sizeof(*A),
+			 NULL, &err );
+  bufC = clCreateBuffer( ctx, CL_MEM_READ_WRITE, N * sizeof(*C),
+			 NULL, &err );
+  tmpbuf = clCreateBuffer( ctx, CL_MEM_READ_WRITE,NULL,
+			 NULL, &err );
+
+  err = clEnqueueWriteBuffer( queue, bufA, CL_TRUE, 0,
+			      N * sizeof( *A ), A, 0, NULL, NULL );
+  err = clEnqueueWriteBuffer( queue, bufC, CL_TRUE, 0,
+			       N * sizeof( *C ), C, 0, NULL, NULL );
+
+  err = clblasSasum(N,bufC,0, bufA, 0, 1, 
+		   tmpbuf, 1, &queue, 
+		   0,NULL, &event ); 
+
+  /* Wait for calculations to be finished. */
+  err = clWaitForEvents( 1, &event );
+
+  /* Fetch results of calculations from GPU memory. */
+  err = clEnqueueReadBuffer( queue, bufC, CL_TRUE, 0,
+			      N * sizeof(*result),
+			     result, 0, NULL, NULL );
+
+  /* Release OpenCL memory objects. */
+  clReleaseMemObject( bufC );
+  clReleaseMemObject( bufA );
+
+  /* Finalize work with clBLAS */
+  clblasTeardown( );
+
+  /* Release OpenCL working objects. */
+  clReleaseCommandQueue( queue );
+  clReleaseContext( ctx );
+
+ //return ret;
+  return result;
+};
+
+float *cblas_sasum_run(cl_float *A ,cl_float *C, int N) { 
+   *C = cblas_sasum(N, A,0); 
+   return C; 
+};
+
+
+
+
+  
 
 
